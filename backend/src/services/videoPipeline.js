@@ -90,8 +90,9 @@ export async function generateVideo({ videoDoc, channel, preferences }) {
     const audioPath = path.join(work, 'voice.mp3');
     await fs.writeFile(audioPath, audio);
 
+    // --- CHANGED TO ffprobePath.path ---
     const duration = Number(
-      await run('ffprobe', [
+      await run(ffprobePath.path, [
         '-v',
         'error',
         '-show_entries',
@@ -101,6 +102,7 @@ export async function generateVideo({ videoDoc, channel, preferences }) {
         audioPath,
       ])
     );
+    
     if (!Number.isFinite(duration) || duration <= 0) {
       throw new Error('Unable to determine voiceover duration with ffprobe');
     }
@@ -161,7 +163,9 @@ export async function generateVideo({ videoDoc, channel, preferences }) {
       '-y',
       path.join(work, 'render.mp4')
     );
-    await run('ffmpeg', args);
+    
+    // --- CHANGED TO ffmpegPath ---
+    await run(ffmpegPath, args);
 
     const outputDir = path.resolve(env.VIDEO_OUTPUT_DIR);
     await fs.mkdir(outputDir, { recursive: true });
