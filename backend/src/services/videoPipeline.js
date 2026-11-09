@@ -6,6 +6,8 @@ import { generateScriptAndTitle, estimateTextCost } from './providers/openaiText
 import { generateImages, estimateImageCost } from './providers/geminiImages.js';
 import { generateVoiceover, estimateTtsCost } from './providers/openaiTts.js';
 import { log } from '../utils/logger.js';
+import ffmpegPath from 'ffmpeg-static';
+import ffprobePath from 'ffprobe-static';
 
 const run = (cmd, args) =>
   new Promise((resolve, reject) => {
