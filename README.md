@@ -146,3 +146,5 @@ cd Autoreel/frontend && npm run build
 - Google OAuth access/refresh tokens are encrypted; token encryption key rotation requires a migration strategy.
 - The scheduler is process-local. For multiple backend instances, use a distributed queue/lock and a dedicated worker.
 - The example does not include a full billing portal, cancellation UI, email verification, password reset, admin tooling, or account deletion UI. Add these before operating a commercial production service.
+#   A u t o r e e l  
+ 
