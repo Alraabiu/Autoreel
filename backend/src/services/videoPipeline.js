@@ -6,8 +6,6 @@ import { generateScriptAndTitle, estimateTextCost } from './providers/openaiText
 import { generateImages, estimateImageCost } from './providers/geminiImages.js';
 import { generateVoiceover, estimateTtsCost } from './providers/openaiTts.js';
 import { log } from '../utils/logger.js';
-import ffmpegPath from 'ffmpeg-static';
-import ffprobePath from 'ffprobe-static';
 
 const run = (cmd, args) =>
   new Promise((resolve, reject) => {
@@ -90,9 +88,9 @@ export async function generateVideo({ videoDoc, channel, preferences }) {
     const audioPath = path.join(work, 'voice.mp3');
     await fs.writeFile(audioPath, audio);
 
-    // --- CHANGED TO ffprobePath.path ---
+    // Uses global ffprobe installed by Docker
     const duration = Number(
-      await run(ffprobePath.path, [
+      await run('ffprobe', [
         '-v',
         'error',
         '-show_entries',
@@ -102,7 +100,7 @@ export async function generateVideo({ videoDoc, channel, preferences }) {
         audioPath,
       ])
     );
-    
+
     if (!Number.isFinite(duration) || duration <= 0) {
       throw new Error('Unable to determine voiceover duration with ffprobe');
     }
@@ -163,9 +161,9 @@ export async function generateVideo({ videoDoc, channel, preferences }) {
       '-y',
       path.join(work, 'render.mp4')
     );
-    
-    // --- CHANGED TO ffmpegPath ---
-    await run(ffmpegPath, args);
+
+    // Uses global ffmpeg installed by Docker
+    await run('ffmpeg', args);
 
     const outputDir = path.resolve(env.VIDEO_OUTPUT_DIR);
     await fs.mkdir(outputDir, { recursive: true });
