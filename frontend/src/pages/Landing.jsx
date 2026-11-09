@@ -8,23 +8,23 @@ const plans = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 17,
-    detail: '2 video per day',
+    price: 17000, // Price in Naira
+    detail: '1 video per day',
     items: ['Daily short-form video', 'AI script and voiceover', 'Automatic YouTube upload'],
   },
   {
     id: 'growth',
     name: 'Growth',
-    price: 22,
-    detail: '4 videos per day',
+    price: 22000,
+    detail: '3 videos per day',
     items: ['Everything in Starter', 'Three daily publishing slots', 'Review before posting'],
     featured: true,
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: 20,
-    detail: '6 videos per day',
+    price: 30000,
+    detail: '3 videos per day',
     items: ['Everything in Growth', 'Premium visual clips', 'Multi-channel support'],
   },
 ];
@@ -48,6 +48,7 @@ export default function Landing() {
     }
     try {
       const { data } = await api.post('/api/billing/checkout', { plan });
+      // Redirect to Paystack Checkout
       window.location.assign(data.url);
     } catch (e) {
       alert(e.response?.data?.error || 'Unable to start checkout. Check your billing setup.');
@@ -157,14 +158,14 @@ export default function Landing() {
           <div className="section-heading">
             <span className="eyebrow">CLEAR, MONTHLY PRICING</span>
             <h2>Choose your <span>publishing pace.</span></h2>
-            <p>Plans activate only after Stripe confirms your subscription payment.</p>
+            <p>Plans activate only after Paystack confirms your subscription payment.</p>
           </div>
           <div className="pricing-grid">
             {plans.map((p) => (
               <article className={`price-card ${p.featured ? 'highlighted' : ''}`} key={p.id}>
                 {p.featured && <div className="popular-ribbon">MOST POPULAR</div>}
                 <div className="plan-name">{p.name}</div>
-                <div className="price"><sup>$</sup>{p.price}<span>/month</span></div>
+                <div className="price"><sup>₦</sup>{p.price.toLocaleString()}<span>/month</span></div>
                 <p className="plan-detail">{p.detail}</p>
                 <ul>
                   {p.items.map((x) => (

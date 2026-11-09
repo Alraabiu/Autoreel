@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 
+// Updated to Naira
 const plans = [
-  ['starter', 'Starter', '$17', '2 video/day'],
-  ['growth', 'Growth', '$22', '4 videos/day'],
-  ['pro', 'Pro', '$30', '6 videos/day + extras'],
+  ['starter', 'Starter', '₦17,000', '1 video/day'],
+  ['growth', 'Growth', '₦22,000', '3 videos/day'],
+  ['pro', 'Pro', '₦30,000', '3 videos/day + extras'],
 ];
 
 export default function Dashboard() {
@@ -35,6 +36,7 @@ export default function Dashboard() {
     setBusy(plan);
     try {
       const { data: d } = await api.post('/api/billing/checkout', { plan });
+      // Redirect to Paystack Checkout
       window.location.assign(d.url);
     } catch (e) {
       setError(e.response?.data?.error || 'Checkout could not be started.');
@@ -119,7 +121,7 @@ export default function Dashboard() {
         <section className="plan-banner">
           <div>
             <h2>Choose a plan to start generating</h2>
-            <p>Your plan activates after Stripe confirms payment.</p>
+            <p>Your plan activates after Paystack confirms payment.</p>
           </div>
           <div className="banner-plans">
             {plans.map((p) => (
