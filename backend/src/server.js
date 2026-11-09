@@ -46,8 +46,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Stripe requires the untouched raw request body for signature verification.
-// This MUST be placed before express.json()
+// Paystack requires the untouched raw request body for HMAC signature verification.
+// This MUST be placed before express.json() so it intercepts the webhook first.
 app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json({ limit: '1mb' }));
