@@ -19,10 +19,15 @@ export async function planDailySlots() {
   for (const user of users) {
     const channels = await Channel.find({ user: user._id });
     for (const channel of channels) {
-      const times = user.videosPerDay === 1 ? [12] : [8, 14, 20];
+      // CHANGED HERE: 21 is 9:00 PM. 
+      // 9 AM (9), 3 PM (15), 9 PM (21)
+      const times = user.videosPerDay === 1 ? [21] : [9, 15, 21]; 
+      
       for (let i = 0; i < Math.min(user.videosPerDay, times.length); i++) {
         const scheduledTime = new Date(now);
         scheduledTime.setHours(times[i], 0, 0, 0);
+        
+        // If the time has already passed today, schedule it for tomorrow
         if (scheduledTime < now) scheduledTime.setDate(scheduledTime.getDate() + 1);
 
         const day = scheduledTime.toISOString().slice(0, 10);
@@ -46,6 +51,7 @@ export async function planDailySlots() {
 
 export async function generateDueVideos() {
   const now = new Date();
+  // This looks for videos scheduled within the next hour, or in the past
   const due = await Video.find({
     status: 'queued',
     scheduledTime: { $lte: new Date(now.getTime() + 60 * 60 * 1000) },
@@ -62,6 +68,7 @@ export async function generateDueVideos() {
     if (!video) continue;
 
     try {
+      log.info(`Generating video for slot: ${video._id}...`);
       const [user, channel] = await Promise.all([
         User.findById(video.user),
         Channel.findById(video.channel),
@@ -75,11 +82,14 @@ export async function generateDueVideos() {
       });
       Object.assign(video, result, { status: 'ready' });
       await video.save();
+      
+      log.info(`[SUCCESS] Video generated successfully: ${video._id}`);
+      
     } catch (err) {
       video.status = 'failed';
       video.error = err.message || 'Video generation failed';
       await video.save();
-      log.error('Video generation failed', String(video._id), video.error);
+      log.error(`[FAILED] Video generation failed for ${video._id}:`, video.error);
     }
   }
 }
@@ -96,6 +106,7 @@ export async function uploadReadyVideos() {
 
   for (const video of ready) {
     try {
+      log.info(`Uploading video to YouTube: ${video._id}...`);
       const channel = await Channel.findById(video.channel);
       if (!channel) throw new Error('Connected channel not found');
 
@@ -108,6 +119,8 @@ export async function uploadReadyVideos() {
       video.youtubeVideoId = youtubeVideoId;
       video.postedAt = new Date();
       await video.save();
+      
+      log.info(`[SUCCESS] Video uploaded to YouTube: ${youtubeVideoId}`);
 
       const count = await Video.countDocuments({
         status: 'posted',
@@ -122,7 +135,7 @@ export async function uploadReadyVideos() {
       video.status = 'failed';
       video.error = err.message || 'YouTube upload failed';
       await video.save();
-      log.error('Video upload failed', String(video._id), video.error);
+      log.error(`[FAILED] Video upload failed for ${video._id}:`, video.error);
     }
   }
 }
@@ -130,6 +143,8 @@ export async function uploadReadyVideos() {
 export function startScheduler() {
   if (running) return;
   running = true;
+  
+  // Runs every 10 minutes
   cron.schedule('*/10 * * * *', async () => {
     try {
       await planDailySlots();
@@ -139,5 +154,6 @@ export function startScheduler() {
       log.error('Scheduler cycle failed', err.stack || err.message);
     }
   });
+  
   log.info('Video scheduler started (every 10 minutes)');
 }
