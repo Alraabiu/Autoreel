@@ -19,13 +19,15 @@ export async function planDailySlots() {
   for (const user of users) {
     const channels = await Channel.find({ user: user._id });
     for (const channel of channels) {
-      // CHANGED HERE: 21 is 9:00 PM. 
-      // 9 AM (9), 3 PM (15), 9 PM (21)
-      const times = user.videosPerDay === 1 ? [21] : [9, 15, 21]; 
+      // CHANGED: [hour, minute] format. 
+      // [19, 30] is 7:30 PM. 
+      const times = user.videosPerDay === 1 ? [[19, 30]] : [[9, 0], [15, 0], [19, 30]];
       
       for (let i = 0; i < Math.min(user.videosPerDay, times.length); i++) {
         const scheduledTime = new Date(now);
-        scheduledTime.setHours(times[i], 0, 0, 0);
+        
+        // CHANGED: Apply the hour and minute
+        scheduledTime.setHours(times[i][0], times[i][1], 0, 0);
         
         // If the time has already passed today, schedule it for tomorrow
         if (scheduledTime < now) scheduledTime.setDate(scheduledTime.getDate() + 1);
@@ -41,6 +43,7 @@ export async function planDailySlots() {
             scheduledTime,
             requiresReview: user.preferences.requireReview,
           });
+          log.info(`Planned new video slot for: ${scheduledTime.toLocaleString()}`);
         } catch (err) {
           if (err.code !== 11000) log.error('Could not plan video slot', err.message);
         }
@@ -51,10 +54,9 @@ export async function planDailySlots() {
 
 export async function generateDueVideos() {
   const now = new Date();
-  // This looks for videos scheduled within the next hour, or in the past
   const due = await Video.find({
     status: 'queued',
-    scheduledTime: { $lte: new Date(now.getTime() + 60 * 60 * 1000) },
+    scheduledTime: { $lte: new Date(now.getTime() + 60 * 60 * 1000) }, // Looks up to 1 hour in the future
   })
     .sort({ scheduledTime: 1 })
     .limit(5);
@@ -68,7 +70,7 @@ export async function generateDueVideos() {
     if (!video) continue;
 
     try {
-      log.info(`Generating video for slot: ${video._id}...`);
+      log.info(`[START] Generating video for slot: ${video._id}...`);
       const [user, channel] = await Promise.all([
         User.findById(video.user),
         Channel.findById(video.channel),
@@ -144,7 +146,6 @@ export function startScheduler() {
   if (running) return;
   running = true;
   
-  // Runs every 10 minutes
   cron.schedule('*/10 * * * *', async () => {
     try {
       await planDailySlots();
