@@ -15,11 +15,13 @@ export const env = {
     process.env.GOOGLE_REDIRECT_URI || 'http://localhost:4000/api/youtube/callback',
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
-  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
-  STRIPE_PRICE_STARTER: process.env.STRIPE_PRICE_STARTER || '',
-  STRIPE_PRICE_GROWTH: process.env.STRIPE_PRICE_GROWTH || '',
-  STRIPE_PRICE_PRO: process.env.STRIPE_PRICE_PRO || '',
+  
+  // --- ADDED PAYSTACK VARIABLES ---
+  PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY || '',
+  PAYSTACK_PRICE_STARTER: process.env.PAYSTACK_PRICE_STARTER || '',
+  PAYSTACK_PRICE_GROWTH: process.env.PAYSTACK_PRICE_GROWTH || '',
+  PAYSTACK_PRICE_PRO: process.env.PAYSTACK_PRICE_PRO || '',
+
   VIDEO_TMP_DIR: process.env.VIDEO_TMP_DIR || '/tmp/autoreel',
   VIDEO_OUTPUT_DIR: process.env.VIDEO_OUTPUT_DIR || './storage/videos',
 };
