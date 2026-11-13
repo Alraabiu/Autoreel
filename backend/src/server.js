@@ -22,7 +22,9 @@ import reviewRoutes from './routes/review.routes.js';
 
 const app = express();
 
+// Security and parsing middleware
 app.use(helmet());
+app.use(cookieParser());
 
 // Dynamic CORS setup to allow local development, production, and Vercel preview URLs
 const allowedOrigins = [
@@ -33,7 +35,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
     if (!origin) return callback(null, true);
     
     // Allow any Vercel deployment URL (production or preview) or explicitly allowed origins
@@ -51,10 +52,11 @@ app.use(cors({
 app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json({ limit: '1mb' }));
-app.use(cookieParser());
 
+// Health check route
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/preferences', preferencesRoutes);
@@ -62,8 +64,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/review', reviewRoutes);
 
+// Global Error Handler
 app.use(errorHandler);
 
+// Connect to Database
 await connectDB();
 
 // Render requires binding to 0.0.0.0 and using the PORT provided by the environment
@@ -72,8 +76,10 @@ const server = app.listen(PORT, '0.0.0.0', () =>
   log.info(`AutoReel API listening on port ${PORT}`)
 );
 
+// Start background job scheduler
 startScheduler();
 
+// Graceful shutdown
 process.on('SIGTERM', () => server.close(() => process.exit(0)));
 
 export default app;
